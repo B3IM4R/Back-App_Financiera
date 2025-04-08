@@ -137,6 +137,10 @@ def obtener_resultados_finales(datos_usuario):
 # =============================
 # Endpoint POST
 # =============================
+@app.get("/")
+def root():
+    return {"mensaje": "API para análisis financiero. Usa el endpoint POST /recomendar"}
+
 @app.post("/recomendar")
 def recomendar(datos: DatosUsuario):
     datos_dict = datos.dict()
