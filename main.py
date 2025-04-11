@@ -73,8 +73,8 @@ def recomendaciones_expertas(data: dict) -> list:
     ahorro_pct = data["Ahorros"] / ingresos if ingresos > 0 else 0
     umbral_ahorro = umbrales.get(nivel, 0.3)
     if ahorro_pct < 0.10:
-        recomendaciones.append("Actualmente estás ahorrando poco. Intenta separar un 10% de tus ingresos mensuales para crear un fondo de emergencia.")
-    elif ahorro_pct <= umbral_ahorro:
+        recomendaciones.append("Intenta separar un 10% de tus ingresos mensuales y ahórralos para crear un fondo de emergencia.")
+    elif ahorro_pct > 0 and ahorro_pct <= umbral_ahorro:
         recomendaciones.append("Tu nivel de ahorro es adecuado. Define objetivos claros como un fondo de emergencia, estudios o viajes, y automatiza el proceso para mantener el hábito.")
     else:
         recomendaciones.append("¡Excelente! Estás ahorrando por encima del promedio. Es buen momento para explorar opciones como CDT, fondos de inversión o cuentas de ahorro programado.")
@@ -83,7 +83,7 @@ def recomendaciones_expertas(data: dict) -> list:
     umbral_deuda = umbrales.get(nivel, 0.20)
     if deuda_pct > umbral_deuda:
         recomendaciones.append("Tu deuda es alta en relación a tus ingresos. Revisa tasas de interés, consolida tus créditos si es posible y prioriza pagar primero los de mayor interés.")
-    elif deuda_pct <= 0.05:
+    elif deuda_pct > 0 and deuda_pct <= 0.10:
         recomendaciones.append("Tus compromisos financieros son bajos. Mantén este buen manejo y, si es posible, aumenta ligeramente tus abonos para saldar tus deudas más rápido.")
 
     return recomendaciones
