@@ -74,7 +74,7 @@ def recomendaciones_expertas(data: dict) -> list:
     umbral_ahorro = umbrales.get(nivel, 0.3)
     if ahorro_pct < 0.10:
         recomendaciones.append("Intenta separar un 10% de tus ingresos mensuales y ahórralos para crear un fondo de emergencia.")
-    elif ahorro_pct > 0 and ahorro_pct <= umbral_ahorro:
+    elif ahorro_pct <= umbral_ahorro:
         recomendaciones.append("Tu nivel de ahorro es adecuado. Define objetivos claros como un fondo de emergencia, estudios o viajes, y automatiza el proceso para mantener el hábito.")
     else:
         recomendaciones.append("¡Excelente! Estás ahorrando por encima del promedio. Es buen momento para explorar opciones como CDT, fondos de inversión o cuentas de ahorro programado.")
