@@ -1,73 +1,45 @@
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import LabelEncoder
+from sklearn.multioutput import MultiOutputClassifier
 import joblib
 
-# =============================
-# 1. Cargar y preparar los datos
-# =============================
-df = pd.read_csv("datos_financieros.csv")
+# Cargar y preparar los datos
+df = pd.read_csv("datos_entrenamiento_balanceado.csv")
 
-# Renombrar columnas para usar nombres consistentes si lo necesitas
-df.rename(columns={
-    "Ingreso": "ingresos",
-    "Alimentación": "alimentacion",
-    "Movilidad": "movilidad",
-    "Vivienda": "vivienda",
-    "Salud": "salud",
-    "Educación": "educacion",
-    "Entretenimiento": "entretenimiento",
-    "Vestuario": "vestuario",
-    "Ahorros": "ahorros",
-    "Deudas": "deudas",
-    "Otros": "otros"
-}, inplace=True)
-
-# =============================
-# 2. Codificar columnas categóricas
-# =============================
+# Codificar columnas categóricas
 encoders = {}
-
-# Codificar "NivelIngreso", "SaludFinanciera" y "PerfilFinanciero"
 for col in ["NivelIngreso", "SaludFinanciera", "PerfilFinanciero"]:
     le = LabelEncoder()
     df[col] = le.fit_transform(df[col])
     encoders[col] = le
 
-# =============================
-# 3. Separar variables predictoras
-# =============================
+# Definir variables de entrada y salida
 features = [
-    "ingresos", "alimentacion", "movilidad", "vivienda", "salud",
-    "educacion", "entretenimiento", "vestuario", "ahorros", "deudas",
-    "otros", "%Ahorro", "%Deuda", "NivelIngreso"
+    "Ingreso", "Alimentación", "Movilidad", "Vivienda", "Salud",
+    "Educación", "Entretenimiento", "Vestuario", "Ahorros", "Deudas",
+    "Otros", "%Ahorro", "%Deuda", "NivelIngreso"
 ]
+
 X = df[features]
+y = df[["PerfilFinanciero", "SaludFinanciera"]]
 
-# =============================
-# 4. Entrenar modelo para Salud Financiera
-# =============================
-y_salud = df["SaludFinanciera"]
-X_train_s, X_test_s, y_train_s, y_test_s = train_test_split(X, y_salud, test_size=0.2, random_state=42)
+# Entrenar modelo multisalida
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-modelo_salud = RandomForestClassifier(n_estimators=100, random_state=42)
-modelo_salud.fit(X_train_s, y_train_s)
+modelo_base = RandomForestClassifier(n_estimators=100, random_state=42)
+modelo_multisalida = MultiOutputClassifier(modelo_base)
 
-# =============================
-# 5. Entrenar modelo para Perfil Financiero
-# =============================
-y_perfil = df["PerfilFinanciero"]
-X_train_p, X_test_p, y_train_p, y_test_p = train_test_split(X, y_perfil, test_size=0.2, random_state=42)
+modelo_multisalida.fit(X_train, y_train)
 
-modelo_perfil = RandomForestClassifier(n_estimators=100, random_state=42)
-modelo_perfil.fit(X_train_p, y_train_p)
+# Validación cruzada individual
+for i, target in enumerate(["PerfilFinanciero", "SaludFinanciera"]):
+    scores = cross_val_score(modelo_multisalida.estimators_[i], X, y.iloc[:, i], cv=5)
+    print(f"Precisión promedio (validación cruzada - {target}):", scores.mean())
 
-# =============================
-# 6. Guardar modelos y encoders
-# =============================
-joblib.dump(modelo_salud, "modelo_salud_financiera.pkl")
-joblib.dump(modelo_perfil, "modelo_perfil_financiero.pkl")
-joblib.dump(encoders, "todos_los_encoders.pkl")
+# Guardar el modelo y los encoders
+joblib.dump(modelo_multisalida, "modelo_financiero_multisalida.pkl")
+joblib.dump(encoders, "encoders.pkl")
 
-print("Modelos entrenados y guardados correctamente.")
+print("\nModelo multisalida entrenado, validado y guardado correctamente.")
